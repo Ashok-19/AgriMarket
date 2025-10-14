@@ -1,0 +1,31 @@
+{
+  "name": "agrimarket-dashboard",
+  "version": "1.0.0",
+  "description": "Agricultural Market Analytics Dashboard with AI-powered Price Forecasting",
+  "main": "index.js",
+  "scripts": {
+    "dev": "python api/app.py",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YOUR_USERNAME/agrimarket-dashboard.git"
+  },
+  "keywords": [
+    "agriculture",
+    "market",
+    "analytics",
+    "dashboard",
+    "forecasting",
+    "ai",
+    "prophet",
+    "flask",
+    "plotly"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/YOUR_USERNAME/agrimarket-dashboard/issues"
+  },
+  "homepage": "https://github.com/YOUR_USERNAME/agrimarket-dashboard#readme"
+}

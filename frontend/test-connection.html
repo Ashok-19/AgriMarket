@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Connection Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        h1 { margin: 0 0 10px; }
+        .subtitle { opacity: 0.8; margin-bottom: 30px; }
+        .test-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .status.testing { background: #fbbf24; color: #000; }
+        .status.success { background: #10b981; color: #fff; }
+        .status.error { background: #ef4444; color: #fff; }
+        .details {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        button {
+            background: #fff;
+            color: #667eea;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 20px;
+            width: 100%;
+        }
+        button:hover { transform: scale(1.02); }
+        .loader { 
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 Backend Connection Test</h1>
+        <p class="subtitle">Testing connection to Flask API on localhost:5000</p>
+        
+        <div id="healthTest" class="test-item">
+            <div>
+                <strong>/api/health</strong>
+                <div class="details">Health check endpoint</div>
+            </div>
+            <span class="status testing">Testing...</span>
+        </div>
+        
+        <div id="kpisTest" class="test-item">
+            <div>
+                <strong>/api/kpis</strong>
+                <div class="details">KPI data (markets, price, commodities)</div>
+            </div>
+            <span class="status testing">Testing...</span>
+        </div>
+        
+        <div id="commoditiesTest" class="test-item">
+            <div>
+                <strong>/api/commodities</strong>
+                <div class="details">List of all commodities</div>
+            </div>
+            <span class="status testing">Testing...</span>
+        </div>
+        
+        <div id="marketsTest" class="test-item">
+            <div>
+                <strong>/api/markets</strong>
+                <div class="details">List of all markets</div>
+            </div>
+            <span class="status testing">Testing...</span>
+        </div>
+        
+        <div id="forecastTest" class="test-item">
+            <div>
+                <strong>/api/model-commodities</strong>
+                <div class="details">Commodities with forecast models</div>
+            </div>
+            <span class="status testing">Testing...</span>
+        </div>
+        
+        <button onclick="runTests()">🔄 Run Tests Again</button>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000';
+        
+        async function testEndpoint(id, url) {
+            const element = document.getElementById(id);
+            const statusEl = element.querySelector('.status');
+            const detailsEl = element.querySelector('.details');
+            
+            statusEl.innerHTML = '<div class="loader"></div>';
+            statusEl.className = 'status testing';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}${url}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusEl.textContent = '✓ Success';
+                    statusEl.className = 'status success';
+                    detailsEl.textContent = `Response: ${JSON.stringify(data).substring(0, 50)}...`;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                statusEl.textContent = '✗ Failed';
+                statusEl.className = 'status error';
+                detailsEl.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        async function runTests() {
+            await testEndpoint('healthTest', '/api/health');
+            await testEndpoint('kpisTest', '/api/kpis');
+            await testEndpoint('commoditiesTest', '/api/commodities');
+            await testEndpoint('marketsTest', '/api/markets');
+            await testEndpoint('forecastTest', '/api/model-commodities');
+        }
+        
+        // Run tests on page load
+        runTests();
+    </script>
+</body>
+</html>
