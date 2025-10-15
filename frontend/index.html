@@ -59,7 +59,6 @@
                 <div class="filter-group">
                     <label class="filter-label">State(s)</label>
                     <select id="stateFilter" class="filter-select">
-                        <option value="">Loading...</option>
                     </select>
                 </div>
 
@@ -74,7 +73,6 @@
                         <input type="text" id="marketSearch" class="filter-input" placeholder="Search markets...">
                     </div>
                     <div id="marketCheckboxContainer" class="checkbox-container">
-                        <div class="loading-text">Loading markets...</div>
                     </div>
                     <div id="marketSelectedCount" class="selected-count">0 selected</div>
                 </div>
@@ -90,7 +88,6 @@
                         <input type="text" id="commoditySearch" class="filter-input" placeholder="Search commodities...">
                     </div>
                     <div id="commodityCheckboxContainer" class="checkbox-container">
-                        <div class="loading-text">Loading commodities...</div>
                     </div>
                     <div id="selectedCount" class="selected-count">0 selected</div>
                 </div>
@@ -106,13 +103,6 @@
                     <input type="date" id="endDate" class="filter-input">
                 </div>
 
-                <!-- Forecast Button -->
-                <button class="btn-primary" id="showForecastBtn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
-                    </svg>
-                    Show Price Forecast
-                </button>
             </div>
 
             <div class="sidebar-divider"></div>
@@ -159,13 +149,21 @@
         <div class="container">
             <!-- Header -->
             <header class="header">
-                <div>
+                <div class="header-info">
                     <div class="badge">
                         <span class="badge-dot"></span>
                         Live Data
                     </div>
                     <h1 class="page-title">Market Analytics Dashboard</h1>
                     <p class="page-subtitle">Real-time insights into agricultural commodity markets across regions</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-primary forecast-action-btn" id="showForecastBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"></path>
+                        </svg>
+                        Show Price Forecast
+                    </button>
                 </div>
             </header>
 
@@ -317,7 +315,6 @@
                         </svg>
                         Forecast for <span id="forecastModalMarket">Udumalpet</span> Market
                     </h2>
-                    
                 </div>
                 <button class="modal-close" id="closeModalBtn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -332,13 +329,11 @@
                     <div class="filter-group">
                         <label class="filter-label">Market</label>
                         <select id="forecastMarket" class="filter-select">
-                            <option value="">Loading...</option>
                         </select>
                     </div>
                     <div class="filter-group">
                         <label class="filter-label">Commodity</label>
                         <select id="forecastCommodity" class="filter-select">
-                            <option value="">Loading...</option>
                         </select>
                     </div>
                     <div class="filter-group">
