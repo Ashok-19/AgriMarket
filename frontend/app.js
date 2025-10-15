@@ -149,7 +149,11 @@ function updateDateRangeDisplay() {
 
 // Event Listeners
 function setupEventListeners() {
-    themeToggle.addEventListener('click', toggleTheme);
+    // Theme toggle - re-query to ensure DOM is ready
+    const themeToggleBtn = document.getElementById('themeToggle');
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', toggleTheme);
+    }
     
     // Sidebar toggle
     const sidebarToggle = document.getElementById('sidebarToggle');
