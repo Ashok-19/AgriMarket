@@ -65,9 +65,6 @@ const MOCK_DATA = {
 
 // DOM Elements
 const themeToggle = document.getElementById('themeToggle');
-const themeText = document.getElementById('themeText');
-const moonIcon = document.getElementById('moonIcon');
-const sunIcon = document.getElementById('sunIcon');
 const body = document.body;
 
 const showForecastBtn = document.getElementById('showForecastBtn');
@@ -116,38 +113,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Don't auto-load charts - wait for user to select commodity
 });
 
-// Theme Management
-function initTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    applyTheme(savedTheme);
-}
-
-function toggleTheme() {
-    const currentTheme = body.classList.contains('dark-mode') ? 'dark' : 'light';
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    applyTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    
-    // Re-render all charts with new theme colors
-    refreshChartsForTheme();
-}
-
-function applyTheme(theme) {
-    if (theme === 'dark') {
-        body.classList.remove('light-mode');
-        body.classList.add('dark-mode');
-        moonIcon.style.display = 'none';
-        sunIcon.style.display = 'block';
-        themeText.textContent = 'Light Mode';
-    } else {
-        body.classList.remove('dark-mode');
-        body.classList.add('light-mode');
-        moonIcon.style.display = 'block';
-        sunIcon.style.display = 'none';
-        themeText.textContent = 'Dark Mode';
-    }
-}
-
 // Get theme-aware colors for charts
 function getThemeColors() {
     const isDark = body.classList.contains('dark-mode');
@@ -157,33 +122,6 @@ function getThemeColors() {
         bgColor: isDark ? '#1e293b' : '#ffffff',
         paperBg: isDark ? 'transparent' : 'transparent'
     };
-}
-
-// Refresh all visible charts when theme changes
-function refreshChartsForTheme() {
-    console.log('Refreshing charts for theme change...');
-    
-    // Reload main dashboard data to refresh charts
-    loadData();
-    
-    // If forecast modal is open, refresh those charts too
-    if (forecastModal && forecastModal.classList.contains('active')) {
-        const forecastCommodityElem = document.getElementById('forecastCommodity');
-        const commodity = forecastCommodityElem ? forecastCommodityElem.value : null;
-        
-        loadForecastData();
-        
-        if (commodity) {
-            loadPredictedAnalytics(commodity);
-        }
-    }
-    
-    // Reload analytics charts if they exist
-    const market = analyticsMarketSelect?.value;
-    const commodity = analyticsCommoditySelect?.value;
-    if (market && commodity) {
-        loadHistoricalAnalytics(market, commodity);
-    }
 }
 
 // Date Initialization
@@ -1683,5 +1621,61 @@ async function loadForecastCalendar(commodity) {
     } catch (error) {
         console.error('Error loading forecast calendar:', error);
         document.getElementById('forecastCalendarChart').innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error loading chart</div>';
+    }
+}
+
+// Theme Management
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = body.classList.contains('dark-mode') ? 'dark' : 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    applyTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Re-render all charts with new theme colors
+    refreshChartsForTheme();
+}
+
+function applyTheme(theme) {
+    const themeToggleBtn = document.getElementById('themeToggle');
+
+    if (theme === 'dark') {
+        body.classList.remove('light-mode');
+        body.classList.add('dark-mode');
+        if (themeToggleBtn) {
+            themeToggleBtn.classList.remove('theme-light');
+            themeToggleBtn.classList.add('theme-dark');
+        }
+    } else {
+        body.classList.remove('dark-mode');
+        body.classList.add('light-mode');
+        if (themeToggleBtn) {
+            themeToggleBtn.classList.remove('theme-dark');
+            themeToggleBtn.classList.add('theme-light');
+        }
+    }
+}
+
+// Refresh all visible charts when theme changes
+function refreshChartsForTheme() {
+    console.log('Refreshing charts for theme change...');
+    
+    // Reload main dashboard data to refresh charts
+    loadData();
+    
+    // If forecast modal is open, refresh those charts too
+    if (forecastModal && forecastModal.classList.contains('active')) {
+        const forecastCommodityElem = document.getElementById('forecastCommodity');
+        const commodity = forecastCommodityElem ? forecastCommodityElem.value : null;
+        
+        loadForecastData();
+        
+        if (commodity) {
+            loadPredictedAnalytics(commodity);
+        }
     }
 }

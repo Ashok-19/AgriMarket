@@ -1106,6 +1106,78 @@ body:not(.dark-mode) .filter-input::placeholder {
     font-weight: 600;
 }
 
+/* Header Actions */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.theme-toggle-btn {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    transition: all var(--transition-speed);
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-toggle-btn:hover {
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+}
+
+.theme-toggle-btn:active {
+    transform: scale(0.95);
+}
+
+.theme-toggle-btn svg {
+    width: 20px;
+    height: 20px;
+    transition: all var(--transition-speed);
+}
+
+.theme-toggle-btn #moonIcon,
+.theme-toggle-btn #sunIcon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+}
+
+/* Light mode (default) - sun icon inactive */
+.theme-toggle-btn.theme-light #moonIcon {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+}
+
+.theme-toggle-btn.theme-light #sunIcon {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) rotate(180deg) scale(0.5);
+    fill: #000000;
+    stroke: #000000;
+}
+
+/* Dark mode - sun icon active */
+.theme-toggle-btn.theme-dark #sunIcon {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+}
+
+.theme-toggle-btn.theme-dark #moonIcon {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-180deg) scale(0.5);
+}
+
 /* Desktop - Toggle button hides sidebar but always present */
 @media (min-width: 1025px) {
     .sidebar-toggle {
