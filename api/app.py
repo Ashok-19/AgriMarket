@@ -22,8 +22,17 @@ MODEL_COMMODITIES = []
 # For Vercel deployment, set environment variables:
 # - DATABASE_URL: URL to download data.db
 # - PREDICTIONS_DATABASE_URL: URL to download predictions.db
-DB_PATH = os.getenv('DATABASE_PATH') or os.path.join(os.path.dirname(__file__), '..', 'DB', 'data.db')
-PREDICTIONS_DB_PATH = os.getenv('PREDICTIONS_DATABASE_PATH') or os.path.join(os.path.dirname(__file__), '..', 'DB', 'predictions.db')
+
+# Detect if running on Vercel (serverless environment)
+IS_VERCEL = os.getenv('VERCEL') or os.getenv('VERCEL_ENV')
+
+# Use /tmp/ for Vercel (only writable directory), local path otherwise
+if IS_VERCEL:
+    DB_PATH = '/tmp/data.db'
+    PREDICTIONS_DB_PATH = '/tmp/predictions.db'
+else:
+    DB_PATH = os.getenv('DATABASE_PATH') or os.path.join(os.path.dirname(__file__), '..', 'DB', 'data.db')
+    PREDICTIONS_DB_PATH = os.getenv('PREDICTIONS_DATABASE_PATH') or os.path.join(os.path.dirname(__file__), '..', 'DB', 'predictions.db')
 
 # Optional: Download databases from URLs if provided
 DATABASE_URL = os.getenv('DATABASE_URL')
@@ -104,12 +113,22 @@ def download_database(url, local_path):
         traceback.print_exc()
         return False
 
-# Download databases if URLs are provided and files don't exist
-if DATABASE_URL and not os.path.exists(DB_PATH):
-    download_database(DATABASE_URL, DB_PATH)
+# Download databases if URLs are provided
+# On Vercel, always download if URL is provided (files don't persist)
+# Locally, only download if files don't exist
+if DATABASE_URL:
+    if IS_VERCEL or not os.path.exists(DB_PATH):
+        print(f"Attempting to download data.db to {DB_PATH}")
+        download_database(DATABASE_URL, DB_PATH)
+    else:
+        print(f"Using existing data.db at {DB_PATH}")
 
-if PREDICTIONS_DATABASE_URL and not os.path.exists(PREDICTIONS_DB_PATH):
-    download_database(PREDICTIONS_DATABASE_URL, PREDICTIONS_DB_PATH)
+if PREDICTIONS_DATABASE_URL:
+    if IS_VERCEL or not os.path.exists(PREDICTIONS_DB_PATH):
+        print(f"Attempting to download predictions.db to {PREDICTIONS_DB_PATH}")
+        download_database(PREDICTIONS_DATABASE_URL, PREDICTIONS_DB_PATH)
+    else:
+        print(f"Using existing predictions.db at {PREDICTIONS_DB_PATH}")
 
 
 def get_data():
