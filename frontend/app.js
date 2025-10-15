@@ -89,9 +89,7 @@ const selectedCount = document.getElementById('selectedCount');
 
 const forecastMarket = document.getElementById('forecastMarket');
 const forecastCommodity = document.getElementById('forecastCommodity');
-const forecastDate = document.getElementById('forecastDate');
 const forecastChartTitle = document.getElementById('forecastChartTitle');
-const predictionValue = document.getElementById('predictionValue');
 
 const analyticsMarketSelect = document.getElementById('analyticsMarketSelect');
 const analyticsCommoditySelect = document.getElementById('analyticsCommoditySelect');
@@ -197,9 +195,6 @@ function initDates() {
     startDate.value = formatDate(oneYearAgo);
     endDate.value = formatDate(today);
     updateDateRangeDisplay();
-    
-    // Initialize forecast date
-    forecastDate.value = formatDate(today);
 }
 
 function formatDate(date) {
@@ -348,9 +343,6 @@ function setupEventListeners() {
         }
         if (e.target && e.target.id === 'forecastCommodity') {
             updateForecastChart();
-        }
-        if (e.target && e.target.id === 'forecastDate') {
-            updatePrediction();
         }
     });
 
@@ -1099,91 +1091,6 @@ function updateForecastChart() {
     const commodity = forecastCommodityElem ? forecastCommodityElem.value : null;
     if (commodity) {
         loadPredictedAnalytics(commodity);
-    }
-}
-
-async function updatePrediction() {
-    const forecastCommodityElem = document.getElementById('forecastCommodity');
-    const forecastDateElem = document.getElementById('forecastDate');
-    const forecastMarketElem = document.getElementById('forecastMarket');
-    const predictionValueElem = document.getElementById('predictionValue');
-    
-    if (!forecastCommodityElem || !forecastDateElem || !forecastMarketElem || !predictionValueElem) {
-        console.error('ERROR: Required prediction elements not found');
-        return;
-    }
-    
-    const commodity = forecastCommodityElem.value;
-    const date = forecastDateElem.value;
-    const market = forecastMarketElem.value;
-    
-    if (!commodity || !date) {
-        predictionValueElem.textContent = 'Select a commodity and date';
-        return;
-    }
-    
-    if (USE_MOCK_DATA) {
-        const selectedDate = new Date(date);
-        const monthYear = selectedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-        const prediction = MOCK_DATA.forecast.predicted.find(d => d.date === monthYear);
-        if (prediction) {
-            predictionValueElem.innerHTML = `
-                <div style="font-size: 24px; font-weight: bold; color: #10b981;">₹${prediction.price.toFixed(2)}</div>
-                <div style="font-size: 12px; margin-top: 4px; opacity: 0.9;">Predicted price for ${commodity} in ${market}</div>
-            `;
-        } else {
-            predictionValueElem.textContent = 'No prediction for this date';
-        }
-    } else {
-        try {
-            predictionValueElem.textContent = 'Loading...';
-            
-            // Fetch price for specific date and market
-            const response = await fetch(`${API_BASE_URL}/api/price-for-date/${encodeURIComponent(commodity)}?date=${date}&market=${encodeURIComponent(market)}`);
-            const data = await response.json();
-            
-            if (response.ok) {
-                // Display price with appropriate message
-                if (data.status === 'historical') {
-                    predictionValueElem.innerHTML = `
-                        <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">₹${data.price}</div>
-                        <div style="font-size: 12px; margin-top: 4px; opacity: 0.9;">${data.message}</div>
-                    `;
-                } else if (data.status === 'historical_nearest') {
-                    predictionValueElem.innerHTML = `
-                        <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">₹${data.price}</div>
-                        <div style="font-size: 12px; margin-top: 4px; opacity: 0.9;">${data.message}</div>
-                    `;
-                } else if (data.status === 'predicted') {
-                    predictionValueElem.innerHTML = `
-                        <div style="font-size: 24px; font-weight: bold; color: #10b981;">₹${data.price}</div>
-                        <div style="font-size: 12px; margin-top: 4px; opacity: 0.9;">${data.message}</div>
-                    `;
-                } else if (data.status === 'predicted_nearest') {
-                    predictionValueElem.innerHTML = `
-                        <div style="font-size: 24px; font-weight: bold; color: #10b981;">₹${data.price}</div>
-                        <div style="font-size: 12px; margin-top: 4px; opacity: 0.9;">${data.message}</div>
-                    `;
-                } else if (data.status === 'not_available') {
-                    predictionValueElem.innerHTML = `
-                        <div style="font-size: 14px; color: #f59e0b;">⚠️ ${data.message}</div>
-                    `;
-                } else if (data.status === 'future') {
-                    predictionValueElem.innerHTML = `
-                        <div style="font-size: 14px; color: #8b5cf6;">🔮 ${data.message}</div>
-                    `;
-                } else if (data.status === 'no_data') {
-                    predictionValueElem.innerHTML = `
-                        <div style="font-size: 14px; color: #ef4444;">❌ ${data.message}</div>
-                    `;
-                }
-            } else {
-                predictionValueElem.textContent = data.error || 'Error loading prediction';
-            }
-        } catch (error) {
-            console.error('Error fetching prediction:', error);
-            predictionValueElem.textContent = 'Error loading prediction';
-        }
     }
 }
 
