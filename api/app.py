@@ -30,19 +30,78 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 PREDICTIONS_DATABASE_URL = os.getenv('PREDICTIONS_DATABASE_URL')
 
 def download_database(url, local_path):
-    """Download database from URL if it doesn't exist locally"""
+    """Download database from URL with Google Drive support"""
     if not url:
         return False
     
     try:
         import urllib.request
+        import urllib.parse
+        import re
+        
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
         print(f"Downloading database from {url}...")
-        urllib.request.urlretrieve(url, local_path)
-        print(f"✓ Database downloaded to {local_path}")
-        return True
+        
+        # Handle Google Drive URLs specially
+        if 'drive.google.com' in url:
+            # Extract file ID from URL
+            file_id = None
+            
+            # Pattern 1: uc?export=download&id=FILE_ID
+            match = re.search(r'[?&]id=([a-zA-Z0-9_-]+)', url)
+            if match:
+                file_id = match.group(1)
+            
+            # Pattern 2: /file/d/FILE_ID/
+            if not file_id:
+                match = re.search(r'/file/d/([a-zA-Z0-9_-]+)/', url)
+                if match:
+                    file_id = match.group(1)
+            
+            if file_id:
+                # Use the direct download endpoint that bypasses virus scan
+                download_url = f"https://drive.google.com/uc?export=download&id={file_id}&confirm=t"
+                print(f"Detected Google Drive file ID: {file_id}")
+            else:
+                print("Could not extract Google Drive file ID, trying URL as-is")
+                download_url = url
+        else:
+            download_url = url
+        
+        # Download with proper headers
+        opener = urllib.request.build_opener()
+        opener.addheaders = [
+            ('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
+        ]
+        urllib.request.install_opener(opener)
+        
+        urllib.request.urlretrieve(download_url, local_path)
+        
+        # Verify the file was downloaded correctly
+        if os.path.exists(local_path):
+            file_size = os.path.getsize(local_path)
+            print(f"✓ Database downloaded to {local_path} ({file_size / 1024 / 1024:.2f} MB)")
+            
+            # Quick SQLite validation
+            try:
+                conn = sqlite3.connect(local_path)
+                cursor = conn.cursor()
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1;")
+                conn.close()
+                print(f"✓ Database file is valid SQLite")
+                return True
+            except sqlite3.DatabaseError as e:
+                print(f"✗ Downloaded file is not a valid SQLite database: {e}")
+                os.remove(local_path)
+                return False
+        else:
+            print(f"✗ File was not created at {local_path}")
+            return False
+            
     except Exception as e:
         print(f"✗ Error downloading database: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 # Download databases if URLs are provided and files don't exist
