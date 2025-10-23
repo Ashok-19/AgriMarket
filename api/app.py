@@ -11,6 +11,7 @@ from datetime import datetime
 import os
 import requests
 from io import BytesIO
+import tempfile
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
@@ -34,23 +35,37 @@ def get_data():
     try:
         if DATA_DB_URL:
             # Fetch from Dropbox URL
-            print(f"Fetching market data from Dropbox...")
+            print(f"Fetching market data from Dropbox: {DATA_DB_URL[:50]}...")
             # Convert Dropbox share link to direct download link
             download_url = DATA_DB_URL.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '')
-            response = requests.get(download_url, timeout=30)
+            print(f"Converted URL: {download_url[:50]}...")
+            
+            response = requests.get(download_url, timeout=60)
             response.raise_for_status()
+            print(f"Downloaded {len(response.content)} bytes")
             
-            # Create in-memory database
-            db_bytes = BytesIO(response.content)
-            conn = sqlite3.connect(':memory:')
+            # Write to temporary file, then load into memory
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.db') as tmp_file:
+                tmp_file.write(response.content)
+                tmp_path = tmp_file.name
             
-            # Load the downloaded database into memory
-            source_conn = sqlite3.connect(db_bytes)
-            source_conn.backup(conn)
-            source_conn.close()
+            try:
+                # Connect to temp file and copy to memory
+                conn_memory = sqlite3.connect(':memory:')
+                conn_disk = sqlite3.connect(tmp_path)
+                conn_disk.backup(conn_memory)
+                conn_disk.close()
+                conn = conn_memory
+                print("Database loaded into memory successfully")
+            finally:
+                # Clean up temp file
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
         else:
             # Use local database for development
             print(f"Using local database: {DB_PATH}")
+            if not os.path.exists(DB_PATH):
+                raise FileNotFoundError(f"Local database not found: {DB_PATH}")
             conn = sqlite3.connect(DB_PATH)
         
         query = """
@@ -60,10 +75,13 @@ def get_data():
         """
         df = pd.read_sql_query(query, conn)
         conn.close()
+        print(f"Loaded {len(df)} records from market data")
         df['Arrival_Date'] = pd.to_datetime(df['Arrival_Date'])
         return df
     except Exception as e:
         print(f"Error loading market data: {e}")
+        import traceback
+        traceback.print_exc()
         raise
 
 
@@ -72,32 +90,49 @@ def get_predictions_data():
     try:
         if PREDICTIONS_DB_URL:
             # Fetch from Dropbox URL
-            print(f"Fetching predictions data from Dropbox...")
+            print(f"Fetching predictions data from Dropbox: {PREDICTIONS_DB_URL[:50]}...")
             # Convert Dropbox share link to direct download link
             download_url = PREDICTIONS_DB_URL.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '')
-            response = requests.get(download_url, timeout=30)
+            print(f"Converted URL: {download_url[:50]}...")
+            
+            response = requests.get(download_url, timeout=60)
             response.raise_for_status()
+            print(f"Downloaded {len(response.content)} bytes")
             
-            # Create in-memory database
-            db_bytes = BytesIO(response.content)
-            conn = sqlite3.connect(':memory:')
+            # Write to temporary file, then load into memory
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.db') as tmp_file:
+                tmp_file.write(response.content)
+                tmp_path = tmp_file.name
             
-            # Load the downloaded database into memory
-            source_conn = sqlite3.connect(db_bytes)
-            source_conn.backup(conn)
-            source_conn.close()
+            try:
+                # Connect to temp file and copy to memory
+                conn_memory = sqlite3.connect(':memory:')
+                conn_disk = sqlite3.connect(tmp_path)
+                conn_disk.backup(conn_memory)
+                conn_disk.close()
+                conn = conn_memory
+                print("Predictions database loaded into memory successfully")
+            finally:
+                # Clean up temp file
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
         else:
             # Use local database for development
             print(f"Using local database: {PREDICTIONS_DB_PATH}")
+            if not os.path.exists(PREDICTIONS_DB_PATH):
+                raise FileNotFoundError(f"Local database not found: {PREDICTIONS_DB_PATH}")
             conn = sqlite3.connect(PREDICTIONS_DB_PATH)
         
         query = "SELECT ds, Market, Commodity, Predicted_Price, trend, season_yearly, season_weekly FROM predicted_prices"
         df = pd.read_sql_query(query, conn)
         conn.close()
+        print(f"Loaded {len(df)} records from predictions data")
         df['ds'] = pd.to_datetime(df['ds'])
         return df
     except Exception as e:
         print(f"Error loading predictions data: {e}")
+        import traceback
+        traceback.print_exc()
         raise
 
 
