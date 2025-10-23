@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriMarket Analytics Dashboard</title>
+    <!-- Google Fonts - Poppins, Josefin Sans, Roboto -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Josefin+Sans:wght@300;400;500;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <!-- Include Plotly.js if not already included by Dash -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -61,7 +65,7 @@
                     <select id="stateFilter" class="filter-select">
                     </select>
                 </div>
-
+                <div class="sidebar-divider"></div>
                 <!-- Market Filter -->
                 <div class="filter-group">
                     <label class="filter-label">
@@ -76,6 +80,8 @@
                     </div>
                     <div id="marketSelectedCount" class="selected-count">0 selected</div>
                 </div>
+                
+                <div class="sidebar-divider"></div>
 
                 <!-- Commodity Filter -->
                 <div class="filter-group">
@@ -91,6 +97,8 @@
                     </div>
                     <div id="selectedCount" class="selected-count">0 selected</div>
                 </div>
+                
+                <div class="sidebar-divider"></div>
 
                 <!-- Date Range -->
                 <div class="filter-group">
@@ -107,20 +115,21 @@
 
             <div class="sidebar-divider"></div>
 
-            <!-- Date Range Display -->
-            <div class="date-range-display">
+            <!-- Data Quality Indicator -->
+            <div class="data-quality-section" id="dataQualityIndicator">
                 <div class="date-range-label">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
-                    <span>Data Range</span>
+                    <span>Data Quality</span>
                 </div>
-                <p id="dateRangeText" class="date-range-text">Select date range</p>
+                <div class="quality-bar-container">
+                    <div class="quality-bar" id="qualityBar" style="width: 0%"></div>
+                </div>
+                <p class="quality-percentage" id="qualityPercentage">Loading...</p>
+                <p class="quality-details" id="qualityDetails"></p>
             </div>
-        </div>
     </aside>
 
     <!-- Main Content -->
@@ -129,12 +138,9 @@
             <!-- Header -->
             <header class="header">
                 <div class="header-info">
-                    <div class="badge">
-                        <span class="badge-dot"></span>
-                        Live Data
-                    </div>
-                    <h1 class="page-title">Market Analytics Dashboard</h1>
-                    <p class="page-subtitle">Real-time insights into agricultural commodity markets across regions</p>
+                    
+                    <h1 class="page-title">AgriMarket </h1>
+                    <p class="page-subtitle">Insights into agricultural commodity markets across regions</p>
                 </div>
                 <div class="header-actions">
                     <button class="btn-secondary theme-toggle-btn theme-light" id="themeToggle" title="Toggle Dark/Light Mode">
@@ -162,8 +168,56 @@
                 </div>
             </header>
 
-            <!-- KPI Cards -->
-            <div class="kpi-grid">
+            <!-- Filter Chips Container -->
+            <div class="filter-chips-container" id="filterChipsContainer">
+                <!-- Filter chips will be dynamically added here -->
+            </div>
+
+            <!-- Tabbed Interface -->
+            <div class="tab-navigation">
+                <button class="tab-button active" data-tab="overview">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Overview
+                </button>
+                <button class="tab-button" data-tab="chartSelection">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="9" x2="15" y2="9"></line>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                    Price Movement
+                </button>
+                <button class="tab-button" data-tab="historical">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                    Historical Analysis
+                </button>
+                <button class="tab-button" data-tab="predictions">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"></path>
+                    </svg>
+                    Predictions
+                </button>
+                <button class="tab-button" data-tab="comparisons">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    Comparisons
+                </button>
+            </div>
+
+            <!-- Overview Tab Panel -->
+            <div class="tab-panel active" id="overviewTab">
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
                 <div class="kpi-card kpi-card-blue" id="marketsKpiCard" data-kpi-type="markets">
                     <div class="kpi-card-bg"></div>
                     <div class="kpi-card-content">
@@ -223,7 +277,14 @@
                 <div class="chart-card">
                     <div class="chart-header">
                         <span class="chart-dot chart-dot-indigo"></span>
-                        <h3 class="chart-title">Top 10 Commodities by Count</h3>
+                        <h3 class="chart-title">Most Traded Commodities</h3>
+                        <button class="chart-info-btn" data-chart="commodity-pie" title="Chart Information">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <path d="M12 17h.01"></path>
+                            </svg>
+                        </button>
                     </div>
                     <div id="commodityPieChart" class="chart-content"></div>
                 </div>
@@ -232,7 +293,14 @@
                 <div class="chart-card">
                     <div class="chart-header">
                         <span class="chart-dot chart-dot-blue"></span>
-                        <h3 class="chart-title">Avg Modal Price by Year</h3>
+                        <h3 class="chart-title">Average Price Trends Over Time</h3>
+                        <button class="chart-info-btn" data-chart="price-line" title="Chart Information">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <path d="M12 17h.01"></path>
+                            </svg>
+                        </button>
                     </div>
                     <div id="priceLineChart" class="chart-content"></div>
                 </div>
@@ -242,59 +310,353 @@
             <div class="chart-card chart-card-wide">
                 <div class="chart-header">
                     <span class="chart-dot chart-dot-violet"></span>
-                    <h3 class="chart-title">Top 10 Commodities by Avg Modal Price</h3>
+                    <h3 class="chart-title">Highest Priced Commodities</h3>
+                    <button class="chart-info-btn" data-chart="price-bar" title="Chart Information">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <path d="M12 17h.01"></path>
+                        </svg>
+                    </button>
                 </div>
                 <div id="priceBarChart" class="chart-content chart-content-large"></div>
             </div>
 
-            <!-- Advanced Analytics Charts - Historical Data Only -->
-            <div class="charts-grid">
-                <!-- Candlestick Chart -->
-                <div class="chart-card">
+            </div>
+            <!-- End Overview Tab -->
+
+            <!-- Chart Selection Tab Panel -->
+            <div class="tab-panel" id="chartSelectionTab">
+                <!-- Commodity Selection for Advanced Analytics -->
+                <div class="chart-card" style="margin-bottom: 24px;">
                     <div class="chart-header">
-                        <span class="chart-dot chart-dot-indigo"></span>
-                        <h3 class="chart-title">Price Volatility (Candlestick)</h3>
+                        <span class="chart-dot chart-dot-red"></span>
+                        <h3 class="chart-title">Select Market & Commodity for Charts</h3>
+                        <button class="chart-info-btn" data-chart="analytics-selection" title="Chart Information">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <path d="M12 17h.01"></path>
+                            </svg>
+                        </button>
                     </div>
-                    <div id="candlestickChart" class="chart-content">
-                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">Select a commodity below to view analysis</div>
+                    <div style="padding: 20px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div>
+                                <label class="filter-label" style="display: block; margin-bottom: 5px;">Market</label>
+                                <select id="analyticsMarketSelect" class="filter-select" style="width: 100%;">
+                                    <option value="">Select a market...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="filter-label" style="display: block; margin-bottom: 5px;">Commodity</label>
+                                <select id="analyticsCommoditySelect" class="filter-select" style="width: 100%;">
+                                    <option value="">Select a commodity...</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Historical Calendar Heatmap -->
+                <!-- Advanced Analytics Charts - Historical Data Only -->
+                <div class="charts-grid">
+                    <!-- Candlestick Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <span class="chart-dot chart-dot-indigo"></span>
+                            <h3 class="chart-title">Price Movement Chart</h3>
+                            <button class="chart-info-btn" data-chart="candlestick" title="Chart Information">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                    <path d="M12 17h.01"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="candlestickChart" class="chart-content">
+                            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">Select a commodity above to view analysis</div>
+                        </div>
+                    </div>
+
+                    <!-- Historical Calendar Heatmap -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <span class="chart-dot chart-dot-blue"></span>
+                            <h3 class="chart-title">Price History Timeline</h3>
+                            <button class="chart-info-btn" data-chart="historical-calendar" title="Chart Information">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                    <path d="M12 17h.01"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="historicalCalendarChart" class="chart-content">
+                            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">Select a commodity above to view analysis</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Chart Selection Tab -->
+
+            <!-- Historical Analysis Tab Panel -->
+            <div class="tab-panel" id="historicalTab">
+                <!-- Historical Analysis Filters -->
+                <div class="chart-card" style="margin-bottom: 24px;">
+                    <div class="chart-header">
+                        <span class="chart-dot chart-dot-purple"></span>
+                        <h3 class="chart-title">Historical Analysis Filter</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div class="filter-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;">
+                            <div class="filter-group">
+                                <label class="filter-label">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                    State
+                                </label>
+                                <select id="historicalStateFilter" class="filter-select">
+                                    <option value="">All States</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                    </svg>
+                                    Market
+                                </label>
+                                <select id="historicalMarketFilter" class="filter-select">
+                                    <option value="">All Markets</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                        <path d="M2 17l10 5 10-5"></path>
+                                        <path d="M2 12l10 5 10-5"></path>
+                                    </svg>
+                                    Commodity
+                                </label>
+                                <select id="historicalCommodityFilter" class="filter-select">
+                                    <option value="">All Commodities</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    </svg>
+                                    Start Date
+                                </label>
+                                <input type="date" id="historicalStartDate" class="filter-input">
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    </svg>
+                                    End Date
+                                </label>
+                                <input type="date" id="historicalEndDate" class="filter-input">
+                            </div>
+                        </div>
+                        <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: flex-end;">
+                            <button class="btn-secondary" id="historicalResetBtn">Reset Filters</button>
+                            <button class="btn-primary" id="historicalApplyBtn">Apply Filters</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Year-over-Year Comparison -->
+                <div class="chart-card chart-card-wide">
+                    <div class="chart-header">
+                        <span class="chart-dot chart-dot-blue"></span>
+                        <h3 class="chart-title">Price Comparison Across Years</h3>
+                        <button class="chart-info-btn" data-chart="yoy-comparison" title="Chart Information">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <path d="M12 17h.01"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="yoyComparisonChart" class="chart-content chart-content-large"></div>
+                </div>
+
+                <!-- Price Volatility Heatmap and Seasonal Radar -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <span class="chart-dot chart-dot-violet"></span>
+                            <h3 class="chart-title">Price Fluctuation Map</h3>
+                            <button class="chart-info-btn" data-chart="volatility-heatmap" title="Chart Information">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                    <path d="M12 17h.01"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="volatilityHeatmapChart" class="chart-content"></div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <span class="chart-dot chart-dot-indigo"></span>
+                            <h3 class="chart-title">Monthly Price Patterns</h3>
+                            <button class="chart-info-btn" data-chart="seasonal-radar" title="Chart Information">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                    <path d="M12 17h.01"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="seasonalRadarChart" class="chart-content"></div>
+                    </div>
+                </div>
+
+                <!-- Price Distribution Violin Plot -->
+                <div class="chart-card chart-card-wide">
+                    <div class="chart-header">
+                        <span class="chart-dot chart-dot-green"></span>
+                        <h3 class="chart-title">Price Range Analysis</h3>
+                        <button class="chart-info-btn" data-chart="violin-plot" title="Chart Information">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <path d="M12 17h.01"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="violinPlotChart" class="chart-content chart-content-large"></div>
+                </div>
+            </div>
+            <!-- End Historical Analysis Tab -->
+
+            <!-- Predictions Tab Panel -->
+            <div class="tab-panel" id="predictionsTab">
                 <div class="chart-card">
                     <div class="chart-header">
                         <span class="chart-dot chart-dot-blue"></span>
-                        <h3 class="chart-title">Historical Price Calendar</h3>
+                        <h3 class="chart-title">AI-Powered Price Predictions</h3>
                     </div>
-                    <div id="historicalCalendarChart" class="chart-content">
-                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">Select a commodity below to view analysis</div>
+                    <div class="chart-content">
+                        <div style="text-align: center; padding: 60px 20px;">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 20px; color: #6366f1;">
+                                <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"></path>
+                            </svg>
+                            <h3 style="font-size: 24px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Price Forecasting</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 24px;">Click the "Show Price Forecast" button in the header to view AI-powered predictions</p>
+                            <button class="btn-primary" onclick="document.getElementById('showForecastBtn').click()" style="width: auto; padding: 12px 24px;">
+                                Open Forecast Modal
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
+            <!-- End Predictions Tab -->
 
-            <!-- Commodity Selection for Advanced Analytics -->
-            <div class="chart-card" style="margin-top: 20px;">
-                <div class="chart-header">
-                    <span class="chart-dot chart-dot-red"></span>
-                    <h3 class="chart-title">Select Market & Commodity for Historical Analysis</h3>
-                </div>
-                <div style="padding: 20px;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                        <div>
-                            <label class="filter-label" style="display: block; margin-bottom: 5px;">Market</label>
-                            <select id="analyticsMarketSelect" class="filter-select" style="width: 100%;">
-                                <option value="">Select a market...</option>
-                            </select>
+            <!-- Comparisons Tab Panel -->
+            <div class="tab-panel" id="comparisonsTab">
+                <!-- Date Range Filter for Comparisons -->
+                <div class="chart-card" style="margin-bottom: 24px;">
+                    <div class="chart-header">
+                        <span class="chart-dot chart-dot-blue"></span>
+                        <h3 class="chart-title">Comparison Date Range</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="filter-group">
+                                <label class="filter-label">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    </svg>
+                                    Start Date
+                                </label>
+                                <input type="date" id="comparisonStartDate" class="filter-input">
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    </svg>
+                                    End Date
+                                </label>
+                                <input type="date" id="comparisonEndDate" class="filter-input">
+                            </div>
                         </div>
-                        <div>
-                            <label class="filter-label" style="display: block; margin-bottom: 5px;">Commodity</label>
-                            <select id="analyticsCommoditySelect" class="filter-select" style="width: 100%;">
-                                <option value="">Select a commodity...</option>
-                            </select>
+                        <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: flex-end;">
+                            <button class="btn-secondary" id="comparisonResetBtn">Reset Dates</button>
+                            <button class="btn-primary" id="comparisonApplyBtn">Apply Dates</button>
                         </div>
                     </div>
                 </div>
+
+                <!-- Commodity Selector for Comparison -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <span class="chart-dot chart-dot-red"></span>
+                        <h3 class="chart-title">Select Commodities to Compare (Max 4)</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div id="comparisonCommoditySelector" class="checkbox-container" style="max-height: 150px;">
+                            <!-- Commodity checkboxes will be dynamically added -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multi-Commodity Comparison Chart -->
+                <div class="chart-card chart-card-wide">
+                    <div class="chart-header">
+                        <span class="chart-dot chart-dot-violet"></span>
+                        <h3 class="chart-title">Compare Multiple Commodities</h3>
+                        <button class="chart-info-btn" data-chart="multi-commodity" title="Chart Information">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <path d="M12 17h.01"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="multiCommodityChart" class="chart-content chart-content-large"></div>
+                </div>
+
+                <!-- Market Performance Scorecard -->
+                <div class="chart-card chart-card-wide">
+                    <div class="chart-header">
+                        <span class="chart-dot chart-dot-indigo"></span>
+                        <h3 class="chart-title">Market Performance Scorecard</h3>
+                        <button class="chart-info-btn" data-chart="market-scorecard" title="Chart Information">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <path d="M12 17h.01"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="marketScorecard" class="chart-content"></div>
+                </div>
             </div>
+            <!-- End Comparisons Tab -->
+
         </div>
     </main>
 
@@ -320,6 +682,18 @@
             </div>
 
             <div class="modal-body">
+                <!-- Prediction Result Card - Moved to Top -->
+                <div class="prediction-result-top">
+                    <div class="prediction-display">
+                        <p class="prediction-label">Selected Date Prediction</p>
+                        <p id="predictionValue" class="prediction-value">Select a date</p>
+                    </div>
+                    <div class="prediction-date-selector">
+                        <label class="filter-label">Forecast Date</label>
+                        <input type="date" id="forecastDate" class="filter-input">
+                    </div>
+                </div>
+
                 <div class="modal-filters">
                     <div class="filter-group">
                         <label class="filter-label">Market</label>
@@ -463,6 +837,37 @@
             </div>
             <div class="modal-body">
                 <div id="commoditiesDetailContent" class="detail-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Information Modal -->
+    <div id="chartInfoModal" class="modal">
+        <div class="modal-overlay" id="chartInfoModalOverlay"></div>
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 8px;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <path d="M12 17h.01"></path>
+                        </svg>
+                        Chart Information
+                    </h2>
+                    <p class="modal-subtitle" id="chartInfoSubtitle">Understanding this visualization</p>
+                </div>
+                <button class="modal-close" id="closeChartInfoModal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="chartInfoContent" class="chart-info-content">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
             </div>
         </div>
     </div>

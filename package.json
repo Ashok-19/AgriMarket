@@ -22,10 +22,10 @@
     "flask",
     "plotly"
   ],
-  "author": "Your Name",
+  "author": "Ashok",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/YOUR_USERNAME/agrimarket-dashboard/issues"
+    "url": "https://github.com/Ashok-19/AgriMarket/issues"
   },
-  "homepage": "https://github.com/YOUR_USERNAME/agrimarket-dashboard#readme"
+  "homepage": "https://github.com/Ashok-19/AgriMarket#readme"
 }

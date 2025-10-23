@@ -18,117 +18,9 @@ df = None
 predictions_df = None
 MODEL_COMMODITIES = []
 
-# Database paths - Support both local and remote URLs
-# For Vercel deployment, set environment variables:
-# - DATABASE_URL: URL to download data.db
-# - PREDICTIONS_DATABASE_URL: URL to download predictions.db
-
-# Detect if running on Vercel (serverless environment)
-IS_VERCEL = os.getenv('VERCEL') or os.getenv('VERCEL_ENV')
-
-# Use /tmp/ for Vercel (only writable directory), local path otherwise
-if IS_VERCEL:
-    DB_PATH = '/tmp/data.db'
-    PREDICTIONS_DB_PATH = '/tmp/predictions.db'
-else:
-    DB_PATH = os.getenv('DATABASE_PATH') or os.path.join(os.path.dirname(__file__), '..', 'DB', 'data.db')
-    PREDICTIONS_DB_PATH = os.getenv('PREDICTIONS_DATABASE_PATH') or os.path.join(os.path.dirname(__file__), '..', 'DB', 'predictions.db')
-
-# Optional: Download databases from URLs if provided
-DATABASE_URL = os.getenv('DATABASE_URL')
-PREDICTIONS_DATABASE_URL = os.getenv('PREDICTIONS_DATABASE_URL')
-
-def download_database(url, local_path):
-    """Download database from URL with Google Drive support"""
-    if not url:
-        return False
-    
-    try:
-        import urllib.request
-        import urllib.parse
-        import re
-        
-        os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        print(f"Downloading database from {url}...")
-        
-        # Handle Google Drive URLs specially
-        if 'drive.google.com' in url:
-            # Extract file ID from URL
-            file_id = None
-            
-            # Pattern 1: uc?export=download&id=FILE_ID
-            match = re.search(r'[?&]id=([a-zA-Z0-9_-]+)', url)
-            if match:
-                file_id = match.group(1)
-            
-            # Pattern 2: /file/d/FILE_ID/
-            if not file_id:
-                match = re.search(r'/file/d/([a-zA-Z0-9_-]+)/', url)
-                if match:
-                    file_id = match.group(1)
-            
-            if file_id:
-                # Use the direct download endpoint that bypasses virus scan
-                download_url = f"https://drive.google.com/uc?export=download&id={file_id}&confirm=t"
-                print(f"Detected Google Drive file ID: {file_id}")
-            else:
-                print("Could not extract Google Drive file ID, trying URL as-is")
-                download_url = url
-        else:
-            download_url = url
-        
-        # Download with proper headers
-        opener = urllib.request.build_opener()
-        opener.addheaders = [
-            ('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
-        ]
-        urllib.request.install_opener(opener)
-        
-        urllib.request.urlretrieve(download_url, local_path)
-        
-        # Verify the file was downloaded correctly
-        if os.path.exists(local_path):
-            file_size = os.path.getsize(local_path)
-            print(f"✓ Database downloaded to {local_path} ({file_size / 1024 / 1024:.2f} MB)")
-            
-            # Quick SQLite validation
-            try:
-                conn = sqlite3.connect(local_path)
-                cursor = conn.cursor()
-                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1;")
-                conn.close()
-                print(f"✓ Database file is valid SQLite")
-                return True
-            except sqlite3.DatabaseError as e:
-                print(f"✗ Downloaded file is not a valid SQLite database: {e}")
-                os.remove(local_path)
-                return False
-        else:
-            print(f"✗ File was not created at {local_path}")
-            return False
-            
-    except Exception as e:
-        print(f"✗ Error downloading database: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
-
-# Download databases if URLs are provided
-# On Vercel, always download if URL is provided (files don't persist)
-# Locally, only download if files don't exist
-if DATABASE_URL:
-    if IS_VERCEL or not os.path.exists(DB_PATH):
-        print(f"Attempting to download data.db to {DB_PATH}")
-        download_database(DATABASE_URL, DB_PATH)
-    else:
-        print(f"Using existing data.db at {DB_PATH}")
-
-if PREDICTIONS_DATABASE_URL:
-    if IS_VERCEL or not os.path.exists(PREDICTIONS_DB_PATH):
-        print(f"Attempting to download predictions.db to {PREDICTIONS_DB_PATH}")
-        download_database(PREDICTIONS_DATABASE_URL, PREDICTIONS_DB_PATH)
-    else:
-        print(f"Using existing predictions.db at {PREDICTIONS_DB_PATH}")
+# Database paths (relative to this file)
+DB_PATH = os.path.join(os.path.dirname(__file__), 'DB', 'data.db')
+PREDICTIONS_DB_PATH = os.path.join(os.path.dirname(__file__), 'DB', 'predictions.db')
 
 
 def get_data():
@@ -231,19 +123,46 @@ def get_states():
 
 @app.route('/api/commodities', methods=['GET'])
 def get_commodities():
-    """Get list of all commodities"""
+    """Get list of commodities, optionally filtered by market and/or state"""
     if df.empty:
         return jsonify([])
-    commodities = sorted(df['Commodity'].dropna().unique().tolist())
+    
+    filtered_df = apply_filters(df)
+    
+    # Additional filtering by market if specified
+    market = request.args.get('market', '').strip()
+    if market:
+        filtered_df = filtered_df[filtered_df['Market'] == market]
+    
+    # Additional filtering by state if specified
+    state = request.args.get('state', '').strip()
+    if state:
+        filtered_df = filtered_df[filtered_df['State'] == state]
+    
+    if filtered_df.empty:
+        return jsonify([])
+    
+    commodities = sorted(filtered_df['Commodity'].dropna().unique().tolist())
     return jsonify(commodities)
 
 
 @app.route('/api/markets', methods=['GET'])
 def get_markets():
-    """Get list of all markets"""
+    """Get list of markets, optionally filtered by state"""
     if df.empty:
         return jsonify([])
-    markets = sorted(df['Market'].dropna().unique().tolist())
+    
+    filtered_df = apply_filters(df)
+    
+    # Additional filtering by state if specified
+    state = request.args.get('state', '').strip()
+    if state:
+        filtered_df = filtered_df[filtered_df['State'] == state]
+    
+    if filtered_df.empty:
+        return jsonify([])
+    
+    markets = sorted(filtered_df['Market'].dropna().unique().tolist())
     return jsonify(markets)
 
 
@@ -260,6 +179,26 @@ def get_prediction_markets():
         return jsonify([])
     markets = sorted(predictions_df['Market'].dropna().unique().tolist())
     return jsonify(markets)
+
+
+@app.route('/api/prediction-commodities', methods=['GET'])
+def get_prediction_commodities():
+    """Get list of commodities available in predictions database, optionally filtered by market"""
+    if predictions_df.empty:
+        return jsonify([])
+    
+    # Filter by market if specified
+    market = request.args.get('market', '').strip()
+    if market:
+        filtered_df = predictions_df[predictions_df['Market'] == market]
+    else:
+        filtered_df = predictions_df
+    
+    if filtered_df.empty:
+        return jsonify([])
+    
+    commodities = sorted(filtered_df['Commodity'].dropna().unique().tolist())
+    return jsonify(commodities)
 
 
 @app.route('/api/kpis', methods=['GET'])
@@ -730,6 +669,341 @@ def get_price_details():
     
     data = price_details.to_dict('records')
     return jsonify(data)
+
+
+# ============================================
+# NEW API ENDPOINTS - PLAN0 IMPLEMENTATION
+# ============================================
+
+@app.route('/api/year-over-year/<commodity>', methods=['GET'])
+def get_year_over_year(commodity):
+    """Get year-over-year price comparison by month"""
+    if df.empty:
+        return jsonify({'years': []})
+    
+    # Apply filters
+    filtered_df = apply_filters(df)
+    
+    if filtered_df.empty:
+        return jsonify({'years': []})
+    
+    # Filter by commodity
+    commodity_df = filtered_df[filtered_df['Commodity'] == commodity].copy()
+    
+    if commodity_df.empty:
+        return jsonify({'years': []})
+    
+    # Extract year and month
+    commodity_df['Year'] = commodity_df['Arrival_Date'].dt.year
+    commodity_df['Month'] = commodity_df['Arrival_Date'].dt.month
+    
+    # Group by year and month
+    yoy_data = commodity_df.groupby(['Year', 'Month'])['Modal_Price'].mean().reset_index()
+    
+    # Month names
+    month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    
+    # Organize by year
+    years_data = []
+    for year in sorted(yoy_data['Year'].unique()):
+        year_df = yoy_data[yoy_data['Year'] == year]
+        # Sort by month to ensure correct order
+        year_df = year_df.sort_values('Month')
+        
+        # Create a dict for quick lookup
+        month_price_map = {int(row['Month']): round(float(row['Modal_Price']), 2) for _, row in year_df.iterrows()}
+        
+        # Pad with all 12 months
+        months = []
+        for month_num in range(1, 13):
+            months.append({
+                'month': month_names[month_num - 1],
+                'price': month_price_map.get(month_num, None)  # None for missing months
+            })
+        
+        years_data.append({
+            'year': str(year),
+            'months': months
+        })
+    
+    return jsonify({'years': years_data})
+
+
+@app.route('/api/volatility-heatmap', methods=['GET'])
+def get_volatility_heatmap():
+    """Get price volatility (std dev) grouped by commodity and market"""
+    if df.empty:
+        return jsonify({'commodities': [], 'markets': [], 'volatility': []})
+    
+    # Apply filters
+    filtered_df = apply_filters(df)
+    
+    if filtered_df.empty:
+        return jsonify({'commodities': [], 'markets': [], 'volatility': []})
+    
+    # Calculate volatility (standard deviation) by commodity and market
+    volatility = filtered_df.groupby(['Commodity', 'Market'])['Modal_Price'].std().reset_index()
+    volatility.columns = ['Commodity', 'Market', 'Volatility']
+    volatility['Volatility'] = volatility['Volatility'].fillna(0)
+    
+    # Get top commodities and markets
+    top_commodities = volatility.groupby('Commodity')['Volatility'].mean().nlargest(10).index.tolist()
+    top_markets = volatility.groupby('Market')['Volatility'].mean().nlargest(10).index.tolist()
+    
+    # Filter to top items
+    volatility = volatility[volatility['Commodity'].isin(top_commodities) & volatility['Market'].isin(top_markets)]
+    
+    # Pivot to create matrix
+    volatility_matrix = volatility.pivot(index='Market', columns='Commodity', values='Volatility')
+    volatility_matrix = volatility_matrix.fillna(0)
+    
+    return jsonify({
+        'commodities': volatility_matrix.columns.tolist(),
+        'markets': volatility_matrix.index.tolist(),
+        'volatility': [[round(float(v), 2) for v in row] for row in volatility_matrix.values]
+    })
+
+
+@app.route('/api/seasonal-pattern/<commodity>', methods=['GET'])
+def get_seasonal_pattern(commodity):
+    """Get seasonal price pattern by month for one or more commodities"""
+    if df.empty:
+        return jsonify({'commodities': []})
+    
+    # Apply filters
+    filtered_df = apply_filters(df)
+    
+    if filtered_df.empty:
+        return jsonify({'commodities': []})
+    
+    # Check for multi-commodity query param
+    commodities_param = request.args.get('commodities', '')
+    if commodities_param:
+        commodities_list = [c.strip() for c in commodities_param.split(',')]
+    else:
+        # Single commodity from path (backward compatible)
+        commodities_list = [commodity]
+    
+    result = []
+    for comm in commodities_list:
+        commodity_df = filtered_df[filtered_df['Commodity'] == comm].copy()
+        
+        if not commodity_df.empty:
+            # Extract month
+            commodity_df['Month'] = commodity_df['Arrival_Date'].dt.month
+            
+            # Group by month and calculate average price
+            seasonal_data = commodity_df.groupby('Month')['Modal_Price'].mean().reset_index()
+            seasonal_data = seasonal_data.sort_values('Month')
+            
+            result.append({
+                'name': comm,
+                'months': seasonal_data['Month'].tolist(),
+                'prices': [round(float(p), 2) for p in seasonal_data['Modal_Price'].tolist()]
+            })
+    
+    # Backward compatibility: if single commodity, return old format
+    if len(commodities_list) == 1 and not commodities_param:
+        if result:
+            return jsonify({
+                'months': result[0]['months'],
+                'prices': result[0]['prices']
+            })
+        else:
+            return jsonify({'months': [], 'prices': []})
+    
+    return jsonify({'commodities': result})
+
+
+@app.route('/api/price-distribution', methods=['GET'])
+def get_price_distribution():
+    """Get price distribution for violin plot"""
+    if df.empty:
+        return jsonify({'commodities': []})
+    
+    # Apply filters
+    filtered_df = apply_filters(df)
+    
+    if filtered_df.empty:
+        return jsonify({'commodities': []})
+    
+    # Get commodities from query parameter
+    commodities_param = request.args.get('commodities', '')
+    if commodities_param:
+        commodities_list = [c.strip() for c in commodities_param.split(',')]
+    else:
+        # Default to top 3 commodities
+        commodities_list = filtered_df['Commodity'].value_counts().head(3).index.tolist()
+    
+    # Get price arrays for each commodity
+    result = []
+    for commodity in commodities_list:
+        commodity_df = filtered_df[filtered_df['Commodity'] == commodity]
+        if not commodity_df.empty:
+            prices = commodity_df['Modal_Price'].dropna().tolist()
+            if prices:
+                result.append({
+                    'name': commodity,
+                    'prices': [round(float(p), 2) for p in prices]
+                })
+    
+    return jsonify({'commodities': result})
+
+
+@app.route('/api/market-performance', methods=['GET'])
+def get_market_performance():
+    """Get market performance metrics"""
+    if df.empty:
+        return jsonify([])
+    
+    # Apply filters
+    filtered_df = apply_filters(df)
+    
+    if filtered_df.empty:
+        return jsonify([])
+    
+    # Calculate metrics for each market
+    performance = []
+    for market in filtered_df['Market'].unique():
+        market_df = filtered_df[filtered_df['Market'] == market]
+        
+        # Calculate metrics
+        avg_price = market_df['Modal_Price'].mean()
+        volatility = market_df['Modal_Price'].std()
+        commodities_count = market_df['Commodity'].nunique()
+        records_count = len(market_df)
+        
+        # Data freshness (days since last record)
+        latest_date = market_df['Arrival_Date'].max()
+        freshness = (pd.Timestamp.now() - latest_date).days
+        
+        performance.append({
+            'market': market,
+            'avg_price': round(float(avg_price), 2),
+            'volatility': round(float(volatility if pd.notna(volatility) else 0), 2),
+            'commodities': int(commodities_count),
+            'records': int(records_count),
+            'freshness': int(freshness)
+        })
+    
+    # Sort by a composite score (lower volatility, more commodities, fresher data)
+    performance.sort(key=lambda x: (-x['commodities'], -x['avg_price'], x['volatility']), reverse=False)
+    
+    return jsonify(performance)
+
+
+@app.route('/api/data-quality', methods=['GET'])
+def get_data_quality():
+    """Get data quality statistics"""
+    if df.empty:
+        return jsonify({
+            'total_records': 0,
+            'date_range': {'min': None, 'max': None},
+            'completeness': 0,
+            'missing_days': 0
+        })
+    
+    # Apply filters
+    filtered_df = apply_filters(df)
+    
+    if filtered_df.empty:
+        return jsonify({
+            'total_records': 0,
+            'date_range': {'min': None, 'max': None},
+            'completeness': 0,
+            'missing_days': 0
+        })
+    
+    # Calculate statistics
+    total_records = len(filtered_df)
+    min_date = filtered_df['Arrival_Date'].min()
+    max_date = filtered_df['Arrival_Date'].max()
+    
+    # Calculate completeness (days with data / total days in range)
+    total_days = (max_date - min_date).days + 1
+    unique_days = filtered_df['Arrival_Date'].dt.date.nunique()
+    completeness = (unique_days / total_days * 100) if total_days > 0 else 0
+    missing_days = total_days - unique_days
+    
+    return jsonify({
+        'total_records': int(total_records),
+        'date_range': {
+            'min': min_date.strftime('%Y-%m-%d'),
+            'max': max_date.strftime('%Y-%m-%d')
+        },
+        'completeness': round(float(completeness), 2),
+        'missing_days': int(missing_days)
+    })
+
+
+@app.route('/api/comparison-commodities', methods=['GET'])
+def get_comparison_commodities():
+    """Get list of commodities that have sufficient data for comparison"""
+    if df.empty:
+        return jsonify([])
+    
+    # Get commodities with at least 10 records for meaningful comparison
+    commodity_counts = df['Commodity'].value_counts()
+    available_commodities = commodity_counts[commodity_counts >= 10].index.tolist()
+    
+    return jsonify(sorted(available_commodities))
+
+
+@app.route('/api/multi-commodity-comparison', methods=['GET'])
+def get_multi_commodity_comparison():
+    """Get time-series data for multiple commodities"""
+    if df.empty:
+        return jsonify({'commodities': []})
+    
+    # Start with full dataset (don't apply global commodity filters for comparison tab)
+    filtered_df = df.copy()
+    
+    # Only apply date filters if provided
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    if start_date:
+        start_dt = pd.to_datetime(start_date)
+        filtered_df = filtered_df[filtered_df['Arrival_Date'] >= start_dt]
+    
+    if end_date:
+        end_dt = pd.to_datetime(end_date)
+        filtered_df = filtered_df[filtered_df['Arrival_Date'] <= end_dt]
+    
+    if filtered_df.empty:
+        return jsonify({'commodities': []})
+    
+    # Get commodities from query parameter
+    commodities_param = request.args.get('commodities', '')
+    if commodities_param:
+        commodities_list = [c.strip() for c in commodities_param.split(',')][:4]  # Max 4
+    else:
+        commodities_list = filtered_df['Commodity'].value_counts().head(4).index.tolist()
+    
+    # Get time-series data for each commodity
+    result = []
+    for commodity in commodities_list:
+        commodity_df = filtered_df[filtered_df['Commodity'] == commodity].copy()
+        if not commodity_df.empty:
+            # Group by month for cleaner visualization
+            commodity_df['YearMonth'] = commodity_df['Arrival_Date'].dt.to_period('M')
+            monthly_data = commodity_df.groupby('YearMonth')['Modal_Price'].mean().reset_index()
+            monthly_data['YearMonth'] = monthly_data['YearMonth'].dt.to_timestamp()
+            
+            data_points = []
+            for _, row in monthly_data.iterrows():
+                data_points.append({
+                    'date': row['YearMonth'].strftime('%Y-%m'),
+                    'price': round(float(row['Modal_Price']), 2)
+                })
+            
+            if data_points:
+                result.append({
+                    'name': commodity,
+                    'data': data_points
+                })
+    
+    return jsonify({'commodities': result})
 
 
 @app.errorhandler(404)
