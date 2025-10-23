@@ -22,8 +22,8 @@ predictions_df = None
 MODEL_COMMODITIES = []
 
 # Get database URLs from environment variables (Dropbox links)
-DATA_DB_URL = os.environ.get('DATA_DB_URL', '')
-PREDICTIONS_DB_URL = os.environ.get('PREDICTIONS_DB_URL', '')
+DATA_DB_URL = os.environ.get('DATABASE_URL', '')
+PREDICTIONS_DB_URL = os.environ.get('PREDICTIONS_DATABASE_URL', '')
 
 # Local fallback paths for development
 DB_PATH = os.path.join(os.path.dirname(__file__), 'DB', 'data.db')
@@ -37,7 +37,7 @@ def get_data():
             # Fetch from Dropbox URL
             print(f"Fetching market data from Dropbox: {DATA_DB_URL[:50]}...")
             # Convert Dropbox share link to direct download link
-            download_url = DATA_DB_URL.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '')
+            download_url = DATA_DB_URL.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('dl=0', 'dl=1')
             print(f"Converted URL: {download_url[:50]}...")
             
             response = requests.get(download_url, timeout=60)
@@ -92,7 +92,7 @@ def get_predictions_data():
             # Fetch from Dropbox URL
             print(f"Fetching predictions data from Dropbox: {PREDICTIONS_DB_URL[:50]}...")
             # Convert Dropbox share link to direct download link
-            download_url = PREDICTIONS_DB_URL.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '')
+            download_url = PREDICTIONS_DB_URL.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('dl=0', 'dl=1')
             print(f"Converted URL: {download_url[:50]}...")
             
             response = requests.get(download_url, timeout=60)
