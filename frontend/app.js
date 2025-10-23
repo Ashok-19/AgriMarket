@@ -1,5 +1,8 @@
 // Configuration
-const API_BASE_URL = 'http://localhost:5000'; // Flask backend URL
+// Use relative URL for production (Vercel), localhost for development
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000'
+    : ''; // Empty string uses same origin (Vercel routes /api to backend)
 const USE_MOCK_DATA = false; // Set to true for testing without backend
 
 // Mock Data (for testing)

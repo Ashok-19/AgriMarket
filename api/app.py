@@ -9,6 +9,8 @@ import pandas as pd
 import sqlite3
 from datetime import datetime
 import os
+import requests
+from io import BytesIO
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
@@ -18,33 +20,85 @@ df = None
 predictions_df = None
 MODEL_COMMODITIES = []
 
-# Database paths (relative to this file)
+# Get database URLs from environment variables (Dropbox links)
+DATA_DB_URL = os.environ.get('DATA_DB_URL', '')
+PREDICTIONS_DB_URL = os.environ.get('PREDICTIONS_DB_URL', '')
+
+# Local fallback paths for development
 DB_PATH = os.path.join(os.path.dirname(__file__), 'DB', 'data.db')
 PREDICTIONS_DB_PATH = os.path.join(os.path.dirname(__file__), 'DB', 'predictions.db')
 
 
 def get_data():
-    """Load market data from SQLite database"""
-    conn = sqlite3.connect(DB_PATH)
-    query = """
-    SELECT State, District, Market, Commodity, Variety, Grade, Arrival_Date,
-           Min_Price, Max_Price, Modal_Price, Commodity_Code
-    FROM market_data
-    """
-    df = pd.read_sql_query(query, conn)
-    conn.close()
-    df['Arrival_Date'] = pd.to_datetime(df['Arrival_Date'])
-    return df
+    """Load market data from SQLite database (Dropbox or local)"""
+    try:
+        if DATA_DB_URL:
+            # Fetch from Dropbox URL
+            print(f"Fetching market data from Dropbox...")
+            # Convert Dropbox share link to direct download link
+            download_url = DATA_DB_URL.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '')
+            response = requests.get(download_url, timeout=30)
+            response.raise_for_status()
+            
+            # Create in-memory database
+            db_bytes = BytesIO(response.content)
+            conn = sqlite3.connect(':memory:')
+            
+            # Load the downloaded database into memory
+            source_conn = sqlite3.connect(db_bytes)
+            source_conn.backup(conn)
+            source_conn.close()
+        else:
+            # Use local database for development
+            print(f"Using local database: {DB_PATH}")
+            conn = sqlite3.connect(DB_PATH)
+        
+        query = """
+        SELECT State, District, Market, Commodity, Variety, Grade, Arrival_Date,
+               Min_Price, Max_Price, Modal_Price, Commodity_Code
+        FROM market_data
+        """
+        df = pd.read_sql_query(query, conn)
+        conn.close()
+        df['Arrival_Date'] = pd.to_datetime(df['Arrival_Date'])
+        return df
+    except Exception as e:
+        print(f"Error loading market data: {e}")
+        raise
 
 
 def get_predictions_data():
-    """Load prediction data from SQLite database"""
-    conn = sqlite3.connect(PREDICTIONS_DB_PATH)
-    query = "SELECT ds, Market, Commodity, Predicted_Price, trend, season_yearly, season_weekly FROM predicted_prices"
-    df = pd.read_sql_query(query, conn)
-    conn.close()
-    df['ds'] = pd.to_datetime(df['ds'])
-    return df
+    """Load prediction data from SQLite database (Dropbox or local)"""
+    try:
+        if PREDICTIONS_DB_URL:
+            # Fetch from Dropbox URL
+            print(f"Fetching predictions data from Dropbox...")
+            # Convert Dropbox share link to direct download link
+            download_url = PREDICTIONS_DB_URL.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '')
+            response = requests.get(download_url, timeout=30)
+            response.raise_for_status()
+            
+            # Create in-memory database
+            db_bytes = BytesIO(response.content)
+            conn = sqlite3.connect(':memory:')
+            
+            # Load the downloaded database into memory
+            source_conn = sqlite3.connect(db_bytes)
+            source_conn.backup(conn)
+            source_conn.close()
+        else:
+            # Use local database for development
+            print(f"Using local database: {PREDICTIONS_DB_PATH}")
+            conn = sqlite3.connect(PREDICTIONS_DB_PATH)
+        
+        query = "SELECT ds, Market, Commodity, Predicted_Price, trend, season_yearly, season_weekly FROM predicted_prices"
+        df = pd.read_sql_query(query, conn)
+        conn.close()
+        df['ds'] = pd.to_datetime(df['ds'])
+        return df
+    except Exception as e:
+        print(f"Error loading predictions data: {e}")
+        raise
 
 
 # Initialize data on startup
