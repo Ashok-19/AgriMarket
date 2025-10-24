@@ -986,11 +986,33 @@ body:not(.dark-mode) .logo-icon svg {
     padding: 16px;
     height: 280px;
     width: 100%;
+    position: relative;
 }
 
 .chart-content-large {
     height: 320px;
     width: 100%;
+    position: relative;
+}
+
+/* Ensure Plotly charts are responsive */
+.chart-content > div,
+.chart-content-large > div {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-content .plotly,
+.chart-content-large .plotly {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Make SVG charts responsive */
+.chart-content svg,
+.chart-content-large svg {
+    max-width: 100%;
+    height: auto;
 }
 
 /* Modal */
@@ -1424,7 +1446,7 @@ body:not(.dark-mode) .logo-icon svg {
     }
 }
 
-/* Responsive */
+/* Base Responsive - Tablet and Below */
 @media (max-width: 1024px) {
     .sidebar {
         transform: translateX(-100%);
@@ -1433,6 +1455,7 @@ body:not(.dark-mode) .logo-icon svg {
 
     .sidebar.active {
         transform: translateX(0);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
     }
     
     .sidebar-toggle {
@@ -1452,20 +1475,18 @@ body:not(.dark-mode) .logo-icon svg {
     .modal-filters {
         grid-template-columns: 1fr;
     }
-}
-
-@media (max-width: 768px) {
-    .kpi-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .page-title {
-        font-size: 32px;
-    }
-
-    .modal-content {
-        width: 95%;
-        max-height: 95vh;
+    
+    /* Add overlay when sidebar is open on mobile */
+    body.sidebar-open::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 99;
+        animation: fadeIn 0.3s;
     }
 }
 
@@ -1841,43 +1862,639 @@ body:not(.dark-mode) .logo-icon svg {
 }
 
 /* Responsive Adjustments */
+
+/* Tablet and below - Enhanced mobile support */
 @media (max-width: 1024px) {
     .tab-navigation {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
     }
     
     .tab-button {
         flex-shrink: 0;
+        min-width: auto;
+        padding: 14px 18px; /* Larger touch targets */
+    }
+    
+    /* Improve header stacking */
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .forecast-action-btn {
+        flex: 1;
+        justify-content: center;
+    }
+    
+    /* Better modal sizing */
+    .modal-content {
+        width: 92%;
+        max-height: 88vh;
+    }
+    
+    /* Improve filter grid */
+    .filter-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px;
     }
 }
 
+/* Mobile landscape and below */
 @media (max-width: 768px) {
+    /* Main layout adjustments */
+    .main-content {
+        padding: 20px 16px;
+        padding-left: 72px; /* Account for sidebar toggle */
+    }
+    
+    .container {
+        gap: 24px;
+    }
+    
+    /* Header optimizations */
+    .page-title {
+        font-size: 28px;
+        line-height: 1.2;
+    }
+    
+    .page-subtitle {
+        font-size: 15px;
+    }
+    
+    .header-actions {
+        flex-wrap: nowrap;
+        gap: 8px;
+    }
+    
+    .theme-toggle-btn {
+        min-width: 44px;
+        min-height: 44px;
+        flex-shrink: 0;
+    }
+    
+    .forecast-action-btn {
+        padding: 12px 16px;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+    
+    /* KPI Cards - Ensure they stack properly */
+    .kpi-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .kpi-card {
+        padding: 20px;
+    }
+    
+    .kpi-value {
+        font-size: 28px;
+    }
+    
+    /* Filter chips */
     .filter-chips-container {
         gap: 6px;
+        padding: 12px 0;
     }
     
     .filter-chip {
         font-size: 12px;
-        padding: 4px 10px;
+        padding: 6px 12px;
     }
     
+    /* Tab navigation */
     .tab-button {
-        padding: 10px 16px;
+        padding: 12px 16px;
         font-size: 13px;
+        min-height: 44px; /* Touch-friendly */
     }
     
+    /* Charts */
+    .charts-grid {
+        gap: 20px;
+    }
+    
+    .chart-card {
+        margin-bottom: 20px;
+    }
+    
+    .chart-header {
+        padding: 16px;
+        flex-wrap: wrap;
+    }
+    
+    .chart-title {
+        font-size: 15px;
+    }
+    
+    .chart-content {
+        padding: 12px;
+        height: 250px;
+    }
+    
+    .chart-content-large {
+        height: 280px;
+    }
+    
+    /* Modal optimizations */
+    .modal-content {
+        width: 95%;
+        max-height: 92vh;
+        border-radius: 12px;
+    }
+    
+    .modal-header {
+        padding: 20px 16px;
+    }
+    
+    .modal-title {
+        font-size: 20px;
+    }
+    
+    .modal-body {
+        padding: 16px;
+    }
+    
+    .modal-filters {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 12px;
+    }
+    
+    /* Sidebar improvements */
+    .sidebar {
+        width: 280px;
+        padding: 24px 20px;
+    }
+    
+    .sidebar-toggle {
+        width: 48px;
+        height: 48px;
+        top: 16px;
+        left: 16px;
+    }
+    
+    /* Form elements - larger for touch */
+    .filter-select,
+    .filter-input {
+        padding: 12px 14px;
+        font-size: 16px; /* Prevents zoom on iOS */
+        min-height: 44px;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        padding: 14px 18px;
+        font-size: 15px;
+        min-height: 48px;
+    }
+    
+    .btn-mini {
+        padding: 6px 10px;
+        font-size: 11px;
+        min-height: 28px;
+    }
+    
+    /* Checkbox container */
+    .checkbox-container {
+        max-height: 180px;
+    }
+    
+    .checkbox-item {
+        padding: 10px 12px;
+        margin: 4px 0;
+    }
+    
+    .checkbox-item input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-right: 12px;
+    }
+    
+    .checkbox-item label {
+        font-size: 14px;
+    }
+    
+    /* Table improvements */
     .scorecard-table {
         font-size: 12px;
     }
     
     .scorecard-table th,
     .scorecard-table td {
-        padding: 8px 12px;
+        padding: 10px 12px;
     }
     
     .scorecard-table-container {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Detail modal */
+    .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+    /* Even more compact layout */
+    .main-content {
+        padding: 16px 12px;
+        padding-left: 64px;
+    }
+    
+    .container {
+        gap: 20px;
+    }
+    
+    /* Header */
+    .page-title {
+        font-size: 24px;
+    }
+    
+    .page-subtitle {
+        font-size: 14px;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .theme-toggle-btn {
+        width: 100%;
+        max-width: 60px;
+        align-self: flex-end;
+    }
+    
+    .forecast-action-btn {
+        width: 100%;
+        padding: 14px 20px;
+    }
+    
+    /* KPI Cards */
+    .kpi-card {
+        padding: 16px;
+    }
+    
+    .kpi-value {
+        font-size: 24px;
+    }
+    
+    .kpi-title {
+        font-size: 13px;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+        width: 260px;
+        padding: 20px 16px;
+    }
+    
+    .sidebar-toggle {
+        width: 44px;
+        height: 44px;
+        top: 12px;
+        left: 12px;
+    }
+    
+    .logo-title {
+        font-size: 18px;
+    }
+    
+    .logo-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    /* Filter sections */
+    .filter-select,
+    .filter-input {
+        font-size: 16px; /* Prevent iOS zoom */
+    }
+    
+    /* Tabs */
+    .tab-button {
+        padding: 10px 14px;
+        font-size: 12px;
+        gap: 6px;
+    }
+    
+    .tab-button svg {
+        width: 14px;
+        height: 14px;
+    }
+    
+    /* Charts */
+    .chart-header {
+        padding: 14px 12px;
+    }
+    
+    .chart-title {
+        font-size: 14px;
+    }
+    
+    .chart-info-btn {
+        padding: 6px;
+    }
+    
+    .chart-content {
+        padding: 10px;
+        height: 220px;
+    }
+    
+    .chart-content-large {
+        height: 250px;
+    }
+    
+    /* Modal */
+    .modal-content {
+        width: 98%;
+        max-height: 94vh;
+        border-radius: 10px;
+    }
+    
+    .modal-header {
+        padding: 16px 12px;
+    }
+    
+    .modal-title {
+        font-size: 18px;
+    }
+    
+    .modal-body {
+        padding: 12px;
+    }
+    
+    .modal-close {
+        padding: 6px;
+    }
+    
+    /* Filter chips - more compact */
+    .filter-chip {
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+    
+    /* Prediction result */
+    .prediction-result-top {
+        flex-direction: column;
+        padding: 16px;
+        gap: 16px;
+    }
+    
+    .prediction-value {
+        font-size: 20px;
+    }
+    
+    .prediction-icon {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+/* Touch device optimizations - apply to all touch-capable devices */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets */
+    .btn-primary,
+    .btn-secondary,
+    .filter-select,
+    .filter-input,
+    .tab-button {
+        min-height: 44px;
+    }
+    
+    /* Remove hover effects that don't work on touch */
+    .kpi-card:hover,
+    .chart-card:hover,
+    .detail-item:hover {
+        transform: none;
+    }
+    
+    /* Add active states for touch feedback */
+    .btn-primary:active,
+    .btn-secondary:active {
+        transform: scale(0.97);
+        opacity: 0.9;
+    }
+    
+    .tab-button:active {
+        background: rgba(99, 102, 241, 0.1);
+    }
+    
+    .kpi-card:active {
+        transform: scale(0.98);
+    }
+    
+    .checkbox-item:active {
+        background: var(--input-bg);
+        transform: scale(0.98);
+    }
+    
+    /* Make scrollbars more visible on touch */
+    .checkbox-container::-webkit-scrollbar,
+    .tab-navigation::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    .checkbox-container::-webkit-scrollbar-thumb,
+    .tab-navigation::-webkit-scrollbar-thumb {
+        background: rgba(99, 102, 241, 0.4);
+        border-radius: 4px;
+    }
+    
+    /* Improve tap targets for close buttons */
+    .modal-close,
+    .chart-info-btn,
+    .filter-chip-remove {
+        min-width: 36px;
+        min-height: 36px;
+    }
+    
+    /* Prevent double-tap zoom on buttons */
+    button {
+        touch-action: manipulation;
+    }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 900px) and (orientation: landscape) {
+    .modal-content {
+        max-height: 95vh;
+    }
+    
+    .chart-content {
+        height: 200px;
+    }
+    
+    .chart-content-large {
+        height: 240px;
+    }
+    
+    .sidebar {
+        width: 260px;
+    }
+}
+
+/* High DPI screens - sharper rendering */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    .chart-content,
+    .chart-content-large {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* Utility Classes for Mobile */
+.mobile-hidden {
+    display: none !important;
+}
+
+@media (min-width: 769px) {
+    .mobile-only {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+    
+    .mobile-hidden {
+        display: none !important;
+    }
+}
+
+/* Prevent text selection on interactive elements for better touch UX */
+.btn-primary,
+.btn-secondary,
+.btn-mini,
+.tab-button,
+.kpi-card,
+.filter-chip,
+.chart-info-btn {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Improve form input appearance on iOS */
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 8px;
+}
+
+/* Safe area insets for notched devices (iPhone X+, etc.) */
+@supports (padding: max(0px)) {
+    body {
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+    }
+    
+    .sidebar {
+        padding-left: max(20px, calc(20px + env(safe-area-inset-left)));
+    }
+    
+    .main-content {
+        padding-left: max(80px, calc(80px + env(safe-area-inset-left)));
+        padding-right: max(32px, calc(32px + env(safe-area-inset-right)));
+    }
+    
+    .sidebar-toggle {
+        left: max(20px, calc(20px + env(safe-area-inset-left)));
+    }
+    
+    @media (max-width: 768px) {
+        .main-content {
+            padding-left: max(72px, calc(72px + env(safe-area-inset-left)));
+            padding-right: max(16px, calc(16px + env(safe-area-inset-right)));
+        }
+        
+        .sidebar-toggle {
+            left: max(16px, calc(16px + env(safe-area-inset-left)));
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .main-content {
+            padding-left: max(64px, calc(64px + env(safe-area-inset-left)));
+            padding-right: max(12px, calc(12px + env(safe-area-inset-right)));
+        }
+        
+        .sidebar-toggle {
+            left: max(12px, calc(12px + env(safe-area-inset-left)));
+        }
+    }
+}
+
+/* Optimize scrolling performance on mobile */
+.sidebar,
+.checkbox-container,
+.tab-navigation,
+.modal-body,
+.detail-list {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Print styles - hide interactive elements */
+@media print {
+    .sidebar,
+    .sidebar-toggle,
+    .theme-toggle-btn,
+    .forecast-action-btn,
+    .chart-info-btn,
+    .filter-chips-container,
+    .tab-navigation,
+    .modal,
+    .btn-primary,
+    .btn-secondary {
+        display: none !important;
+    }
+    
+    .main-content {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+    }
+    
+    .chart-card {
+        page-break-inside: avoid;
     }
 }

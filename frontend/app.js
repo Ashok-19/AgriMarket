@@ -448,11 +448,25 @@ function getThemeColors() {
 // Get standard Plotly config with theme-aware hover styling
 function getPlotlyConfig() {
     const colors = getThemeColors();
+    const isMobile = window.innerWidth <= 768;
+    
     return {
         responsive: true,
-        displayModeBar: true,
+        displayModeBar: !isMobile, // Hide mode bar on mobile for cleaner UI
         displaylogo: false,
-        modeBarButtonsToRemove: ['lasso2d', 'select2d']
+        modeBarButtonsToRemove: ['lasso2d', 'select2d', 'select', 'autoScale2d'],
+        modeBarButtonsToAdd: [],
+        toImageButtonOptions: {
+            format: 'png',
+            filename: 'agrimarket_chart',
+            height: isMobile ? 800 : 1200,
+            width: isMobile ? 800 : 1600,
+            scale: 2
+        },
+        // Better touch interaction on mobile
+        scrollZoom: !isMobile,
+        doubleClick: 'reset',
+        showTips: !isMobile
     };
 }
 
@@ -528,22 +542,95 @@ function updateDateRangeDisplay() {
 function setupEventListeners() {
     themeToggle.addEventListener('click', toggleTheme);
     
-    // Sidebar toggle
+    // Sidebar toggle with mobile support
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.querySelector('.main-content');
     
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', () => {
-            const isCollapsed = sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('expanded');
-            sidebarToggle.classList.toggle('active');
+    if (sidebarToggle && sidebar) {
+        // Toggle sidebar function
+        const toggleSidebar = () => {
+            const isMobile = window.innerWidth <= 1024;
             
-            // Update button position on desktop
-            if (window.innerWidth > 1024) {
+            if (isMobile) {
+                // Mobile behavior: toggle active class and body overlay
+                const isActive = sidebar.classList.toggle('active');
+                document.body.classList.toggle('sidebar-open', isActive);
+                sidebarToggle.classList.toggle('active', isActive);
+                
+                // Prevent body scroll when sidebar is open on mobile
+                if (isActive) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
+            } else {
+                // Desktop behavior: toggle collapsed class
+                const isCollapsed = sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded', isCollapsed);
+                sidebarToggle.classList.toggle('active', isCollapsed);
                 sidebarToggle.style.left = isCollapsed ? '20px' : '340px';
             }
+        };
+        
+        // Click sidebar toggle button
+        sidebarToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleSidebar();
         });
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 1024) {
+                if (sidebar.classList.contains('active') && 
+                    !sidebar.contains(e.target) && 
+                    !sidebarToggle.contains(e.target)) {
+                    sidebar.classList.remove('active');
+                    document.body.classList.remove('sidebar-open');
+                    document.body.style.overflow = '';
+                    sidebarToggle.classList.remove('active');
+                }
+            }
+        });
+        
+        // Handle window resize
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                const isMobile = window.innerWidth <= 1024;
+                
+                // Clean up classes when switching between mobile and desktop
+                if (!isMobile) {
+                    sidebar.classList.remove('active');
+                    document.body.classList.remove('sidebar-open');
+                    document.body.style.overflow = '';
+                    
+                    // Reset desktop toggle position
+                    const isCollapsed = sidebar.classList.contains('collapsed');
+                    sidebarToggle.style.left = isCollapsed ? '20px' : '340px';
+                } else {
+                    // Clean desktop classes on mobile
+                    sidebar.classList.remove('collapsed');
+                    mainContent.classList.remove('expanded');
+                    sidebarToggle.style.left = '';
+                }
+            }, 250);
+        });
+        
+        // Prevent touch scroll on body when sidebar is open (for iOS)
+        let touchStartY = 0;
+        document.body.addEventListener('touchstart', (e) => {
+            if (document.body.classList.contains('sidebar-open') && !sidebar.contains(e.target)) {
+                touchStartY = e.touches[0].clientY;
+            }
+        }, { passive: false });
+        
+        document.body.addEventListener('touchmove', (e) => {
+            if (document.body.classList.contains('sidebar-open') && !sidebar.contains(e.target)) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     }
     
     // KPI card click handlers
@@ -1689,19 +1776,32 @@ async function updatePrediction() {
     }
 }
 
-// Handle window resize for responsive charts
+// Handle window resize for responsive charts with debouncing for better mobile performance
+let resizeTimeout;
 window.addEventListener('resize', () => {
-    Plotly.Plots.resize('commodityPieChart');
-    Plotly.Plots.resize('priceLineChart');
-    Plotly.Plots.resize('priceBarChart');
-    Plotly.Plots.resize('candlestickChart');
-    Plotly.Plots.resize('historicalCalendarChart');
-    if (forecastModal.classList.contains('active')) {
-        Plotly.Plots.resize('forecastChart');
-        Plotly.Plots.resize('seasonalityChart');
-        Plotly.Plots.resize('uncertaintyChart');
-        Plotly.Plots.resize('forecastCalendarChart');
-    }
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        // Get all chart containers
+        const chartIds = [
+            'commodityPieChart', 'priceLineChart', 'priceBarChart',
+            'candlestickChart', 'historicalCalendarChart', 'forecastChart',
+            'seasonalityChart', 'uncertaintyChart', 'forecastCalendarChart',
+            'yoyComparisonChart', 'volatilityHeatmapChart', 'seasonalRadarChart',
+            'violinPlotChart', 'multiCommodityChart'
+        ];
+        
+        // Resize all visible charts
+        chartIds.forEach(chartId => {
+            const chartElement = document.getElementById(chartId);
+            if (chartElement && chartElement.offsetParent !== null) {
+                try {
+                    Plotly.Plots.resize(chartId);
+                } catch (e) {
+                    // Chart might not be initialized yet
+                }
+            }
+        });
+    }, 250); // Debounce resize by 250ms
 });
 
 // Keyboard shortcuts
