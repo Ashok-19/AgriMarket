@@ -2498,3 +2498,449 @@ textarea {
         page-break-inside: avoid;
     }
 }
+
+/* ============================================
+   MOBILE-FIRST RESPONSIVE IMPROVEMENTS
+   Airbnb-Inspired Design Enhancements
+   ============================================ */
+
+/* Chart Toggle Button (Mobile Only) */
+.chart-toggle-btn {
+    display: none; /* Hidden on desktop */
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--gradient-blue);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.chart-toggle-btn:active {
+    transform: scale(0.95);
+}
+
+.chart-toggle-btn svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+
+.chart-toggle-btn.collapsed svg {
+    transform: rotate(180deg);
+}
+
+/* Enhanced Chart Cards - Airbnb Style */
+.chart-card {
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.chart-card:hover {
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+}
+
+.dark-mode .chart-card {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .chart-card:hover {
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Chart Header Improvements */
+.chart-header {
+    border-radius: 16px 16px 0 0;
+}
+
+/* KPI Cards - Enhanced Airbnb Style */
+.kpi-card {
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.kpi-card:hover {
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+}
+
+.dark-mode .kpi-card {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .kpi-card:hover {
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Button Improvements - Airbnb Style */
+.btn-primary,
+.forecast-action-btn {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary:hover,
+.forecast-action-btn:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.btn-primary:active,
+.forecast-action-btn:active {
+    transform: translateY(0);
+}
+
+/* ============================================
+   MOBILE BREAKPOINTS
+   ============================================ */
+
+/* Tablets and Small Desktops (768px - 1024px) */
+@media (max-width: 1024px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .chart-card-two-thirds,
+    .chart-card-half {
+        grid-column: span 1;
+    }
+    
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+}
+
+/* Mobile Devices (max-width: 768px) */
+@media (max-width: 768px) {
+    /* Show chart toggle buttons on mobile */
+    .chart-toggle-btn {
+        display: inline-flex;
+        margin-bottom: 12px;
+    }
+    
+    /* Collapsible chart content */
+    .chart-content.collapsed {
+        display: none;
+    }
+    
+    .chart-content-large.collapsed {
+        display: none;
+    }
+    
+    /* Optimize chart card spacing */
+    .chart-card {
+        margin-bottom: 16px;
+        border-radius: 12px;
+    }
+    
+    .chart-header {
+        padding: 14px 16px;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .chart-header h3 {
+        font-size: 15px;
+    }
+    
+    /* Reduce chart heights for mobile */
+    .chart-content {
+        min-height: 240px;
+        padding: 12px;
+    }
+    
+    .chart-content-large {
+        min-height: 280px;
+    }
+    
+    /* KPI Cards - Single column on mobile */
+    .kpi-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .kpi-card {
+        padding: 16px;
+        border-radius: 12px;
+    }
+    
+    .kpi-value {
+        font-size: 24px;
+    }
+    
+    .kpi-label {
+        font-size: 12px;
+    }
+    
+    /* Header adjustments */
+    .header-title h1 {
+        font-size: 24px;
+    }
+    
+    .header-title p {
+        font-size: 13px;
+    }
+    
+    /* Tab navigation - scrollable */
+    .tab-navigation {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        gap: 8px;
+    }
+    
+    .tab-navigation::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .tab-btn {
+        min-width: auto;
+        padding: 10px 16px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+    
+    /* Filter chips - wrap on mobile */
+    .filter-chips-container {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .filter-chip {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    /* Sidebar improvements */
+    .sidebar {
+        width: 280px;
+    }
+    
+    /* Main content padding */
+    .main-content {
+        padding: 16px 12px;
+    }
+    
+    /* Modal improvements */
+    .modal-content {
+        width: 95%;
+        max-height: 90vh;
+        margin: 5vh auto;
+        border-radius: 16px;
+    }
+    
+    /* Table responsiveness */
+    .market-scorecard-table {
+        font-size: 13px;
+    }
+    
+    .market-scorecard-table th,
+    .market-scorecard-table td {
+        padding: 10px 8px;
+    }
+}
+
+/* Small Mobile Devices (max-width: 480px) */
+@media (max-width: 480px) {
+    /* Further reduce sizes */
+    .chart-content {
+        min-height: 220px;
+        padding: 10px;
+    }
+    
+    .chart-content-large {
+        min-height: 260px;
+    }
+    
+    .chart-header h3 {
+        font-size: 14px;
+    }
+    
+    /* KPI Cards - more compact */
+    .kpi-card {
+        padding: 14px;
+    }
+    
+    .kpi-value {
+        font-size: 20px;
+    }
+    
+    .kpi-label {
+        font-size: 11px;
+    }
+    
+    .kpi-description {
+        font-size: 11px;
+    }
+    
+    /* Header */
+    .header-title h1 {
+        font-size: 20px;
+    }
+    
+    .header-title p {
+        font-size: 12px;
+    }
+    
+    /* Action buttons - stack vertically */
+    .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    .forecast-action-btn,
+    .theme-toggle-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Tab buttons - smaller */
+    .tab-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    
+    .tab-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    /* Sidebar even narrower */
+    .sidebar {
+        width: 260px;
+    }
+    
+    /* Main content */
+    .main-content {
+        padding: 12px 10px;
+    }
+    
+    /* Chart toggle button full width */
+    .chart-toggle-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Landscape Mobile (max-width: 896px and orientation: landscape) */
+@media (max-width: 896px) and (orientation: landscape) {
+    .chart-content {
+        min-height: 200px;
+    }
+    
+    .chart-content-large {
+        min-height: 240px;
+    }
+    
+    .kpi-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ============================================
+   ENHANCED VISUAL POLISH - AIRBNB INSPIRED
+   ============================================ */
+
+/* Smooth Page Transitions */
+.main-content {
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Enhanced Focus States */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--chart-primary);
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+
+/* Smooth Hover States for Interactive Elements */
+.tab-btn,
+.filter-chip,
+.chart-info-btn,
+.checkbox-item {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced Scrollbar (Webkit browsers) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Loading States */
+.loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px;
+    border: 2px solid var(--chart-primary);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

@@ -3395,4 +3395,90 @@ document.addEventListener('DOMContentLoaded', () => {
             renderMultiCommodityComparison();
         });
     }
+    
+    // Initialize chart toggle functionality (mobile only)
+    initChartToggles();
 });
+
+// ============================================
+// CHART TOGGLE FUNCTIONALITY (MOBILE)
+// ============================================
+
+/**
+ * Initialize chart toggle buttons for mobile devices
+ * Allows users to collapse/expand charts to save screen space
+ */
+function initChartToggles() {
+    // Only add toggle buttons on mobile devices (max-width: 768px)
+    // This is handled by CSS, but we initialize all buttons
+    const chartCards = document.querySelectorAll('.chart-card');
+    
+    chartCards.forEach((card, index) => {
+        const header = card.querySelector('.chart-header');
+        const content = card.querySelector('.chart-content, .chart-content-large');
+        
+        if (header && content && !header.querySelector('.chart-toggle-btn')) {
+            // Create toggle button
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'chart-toggle-btn';
+            toggleBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+                <span>Hide Chart</span>
+            `;
+            toggleBtn.setAttribute('aria-expanded', 'true');
+            // Use existing ID if present, otherwise use generated ID
+            const contentId = content.id || `chart-content-${index}`;
+            toggleBtn.setAttribute('aria-controls', contentId);
+            
+            // IMPORTANT: Don't change existing IDs - they're needed for Plotly!
+            // Only set ID if content doesn't have one already
+            if (!content.id) {
+                content.id = contentId;
+            }
+            
+            // Insert toggle button after the h3 title in header
+            const title = header.querySelector('h3');
+            if (title) {
+                title.insertAdjacentElement('afterend', toggleBtn);
+            } else {
+                header.appendChild(toggleBtn);
+            }
+            
+            // Add click handler
+            toggleBtn.addEventListener('click', () => {
+                const isCollapsed = content.classList.contains('collapsed');
+                
+                if (isCollapsed) {
+                    // Expand
+                    content.classList.remove('collapsed');
+                    toggleBtn.classList.remove('collapsed');
+                    toggleBtn.querySelector('span').textContent = 'Hide Chart';
+                    toggleBtn.setAttribute('aria-expanded', 'true');
+                } else {
+                    // Collapse
+                    content.classList.add('collapsed');
+                    toggleBtn.classList.add('collapsed');
+                    toggleBtn.querySelector('span').textContent = 'Show Chart';
+                    toggleBtn.setAttribute('aria-expanded', 'false');
+                }
+                
+                // Smooth scroll to card header when expanding
+                if (isCollapsed) {
+                    setTimeout(() => {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 100);
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Reinitialize chart toggles after dynamic content updates
+ * Call this after AJAX updates or tab switches
+ */
+function reinitChartToggles() {
+    initChartToggles();
+}
