@@ -67,9 +67,9 @@ Browse to **`http://localhost:8000`**  →  you should see live price data.
 ---
 
 ## 🌐 Production Deployment
-The dashboard is continuously deployed as a static site.  You can explore the live instance here:
+The dashboard is continuously deployed as a static site. 
 
-➡️ **https://agrimarket-dashboard.vercel.app**
+#### Note - The site is currently not live and will be made live soon
 
 > Replace with your actual URL if you fork the project.
 
